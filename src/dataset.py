@@ -45,7 +45,8 @@ def load_coco_keypoints(data_dir, data_type='train2017'):
     image_paths = []
     keypoints = []
     for img in images:
-        file_path = os.path.join(data_dir, data_type, img['file_name'])
+        # file_path = os.path.join(data_dir, data_type, img['file_name'])
+        file_path = os.path.join('/disk1/coco/labels/coco-pose/images', data_type, img['file_name'])
         # 이미지에 해당하는 어노테이션 ID를 로드 (여러 인물이 있을 수 있음)
         ann_ids = coco.getAnnIds(imgIds=img['id'], catIds=cat_ids, iscrowd=None)
         anns = coco.loadAnns(ann_ids)
@@ -55,9 +56,11 @@ def load_coco_keypoints(data_dir, data_type='train2017'):
         ann = anns[0]
         # keypoints는 [x1,y1,v1, x2,y2,v2, ..., x17,y17,v17] 형식입니다.
         kps = ann['keypoints']
+
         # 만약 시각화나 평가에 visibility 정보가 필요없다면, x와 y만 사용할 수 있음
         # 예: kps = [k for i, k in enumerate(kps) if i % 3 != 2]
         kps_tensor = torch.tensor(kps, dtype=torch.float32)
+
         image_paths.append(file_path)
         keypoints.append(kps_tensor)
 

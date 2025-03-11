@@ -16,7 +16,7 @@ class PoseNet(nn.Module):
         self.regressor = nn.Sequential(
             nn.Linear(64 * 56 * 56, 512),
             nn.ReLU(),
-            nn.Linear(512, num_keypoints * 2)  # 각 keypoint에 대해 x, y 좌표 예측
+            nn.Linear(512, num_keypoints * 3)  # 각 keypoint에 대해 x, y 좌표 예측
         )
 
     def forward(self, x):
