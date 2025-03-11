@@ -46,7 +46,7 @@ def train(args):
     for epoch in range(num_epochs):
         model.train()
         running_loss = 0.0
-        for images, keypoints in train_loader:
+        for i, (images, keypoints) in enumerate(train_loader):
             images = images.to(device)
             keypoints = keypoints.to(device)
             optimizer.zero_grad()
@@ -55,8 +55,14 @@ def train(args):
             loss.backward()
             optimizer.step()
             running_loss += loss.item() * images.size(0)
+            
+            # 100개의 배치마다 현재 진행상황 출력
+            if (i + 1) % 100 == 0:
+                print(f"Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{len(train_loader)}], Loss: {loss.item():.4f}")
+                
         epoch_loss = running_loss / len(train_dataset)
-        print(f"Epoch [{epoch+1}/{num_epochs}], Training Loss: {epoch_loss:.4f}")
+        print(f"\nEpoch [{epoch+1}/{num_epochs}] 완료")
+        print(f"평균 Training Loss: {epoch_loss:.4f}")
 
         # 검증 단계
         model.eval()
