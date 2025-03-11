@@ -21,45 +21,56 @@ def train(args):
 
     # COCO train 데이터셋 로드
     train_image_paths, train_keypoints = load_coco_keypoints(data_dir, data_type='train2017')
+    print(f"Train 데이터 개수: {len(train_image_paths)}")
     train_transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor()
     ])
     train_dataset = PoseDataset(train_image_paths, train_keypoints, transform=train_transform)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    print(f"Train 데이터로더 배치 수: {len(train_loader)}")
 
     # COCO validation 데이터셋 로드
     val_image_paths, val_keypoints = load_coco_keypoints(data_dir, data_type='val2017')
+    print(f"Validation 데이터 개수: {len(val_image_paths)}")
     val_transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor()
     ])
     val_dataset = PoseDataset(val_image_paths, val_keypoints, transform=val_transform)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+    print(f"Validation 데이터로더 배치 수: {len(val_loader)}")
 
     # 모델, 손실함수, 옵티마이저 정의
     model = PoseNet(num_keypoints=17).to(device)
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
+    print("모델, 손실함수, 옵티마이저 초기화 완료")
 
     # 학습 루프
+    print("학습 시작...")
     for epoch in range(num_epochs):
         model.train()
         running_loss = 0.0
         for i, (images, keypoints) in enumerate(train_loader):
-            images = images.to(device)
-            keypoints = keypoints.to(device)
-            optimizer.zero_grad()
-            outputs = model(images)
-            loss = criterion(outputs, keypoints)
-            loss.backward()
-            optimizer.step()
-            running_loss += loss.item() * images.size(0)
-            
-            # 100개의 배치마다 현재 진행상황 출력
-            if (i + 1) % 100 == 0:
-                print(f"Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{len(train_loader)}], Loss: {loss.item():.4f}")
+            try:
+                images = images.to(device)
+                keypoints = keypoints.to(device)
+                optimizer.zero_grad()
+                outputs = model(images)
+                loss = criterion(outputs, keypoints)
+                loss.backward()
+                optimizer.step()
+                running_loss += loss.item() * images.size(0)
                 
+                # 10개의 배치마다 현재 진행상황 출력 (더 자주 출력하도록 수정)
+                if (i + 1) % 10 == 0:
+                    print(f"Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{len(train_loader)}], Loss: {loss.item():.4f}")
+            except Exception as e:
+                print(f"학습 중 에러 발생: {str(e)}")
+                print(f"배치 인덱스: {i}, 이미지 shape: {images.shape}, 키포인트 shape: {keypoints.shape}")
+                raise e
+            
         epoch_loss = running_loss / len(train_dataset)
         print(f"\nEpoch [{epoch+1}/{num_epochs}] 완료")
         print(f"평균 Training Loss: {epoch_loss:.4f}")
