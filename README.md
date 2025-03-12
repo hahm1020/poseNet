@@ -39,3 +39,9 @@ my-model/
  ```
 
 학습이 완료되면 `models/posenet_model.pth`에 학습된 모델이 저장됩니다.
+
+
+4. **추론 실행**
+```bash
+ python src/test_pose.py --model_path models/posenet_model.pth --image_path data/{test-img}
+```
