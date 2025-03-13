@@ -56,18 +56,19 @@ def infer_keypoints(model, input_tensor, device):
 
 
 def visualize_results(image, keypoints):
-    """
-    원본 이미지 위에 예측된 keypoint와 visibility를 시각화합니다.
-    """
     plt.figure(figsize=(8, 8))
     plt.imshow(image)
-    # 예측 좌표는 전처리된 (224x224) 기준입니다.
+    # 원본 이미지 크기 얻기
+    width, height = image.size
+    scale_x = width / 224
+    scale_y = height / 224
+    # 스케일링된 좌표로 시각화
     for (x, y, v) in keypoints:
-        # visibility(v)가 낮은 keypoint는 신뢰도가 낮을 수 있음
-        plt.scatter(x, y, c="red", marker="x")
+        plt.scatter(x * scale_x, y * scale_y, c="red", marker="x")
     plt.title("Predicted Pose Keypoints")
     plt.axis("off")
     plt.show()
+
 
 
 def main(args):
@@ -96,7 +97,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--model_path',
         type=str,
-        default="my-model/posenet_model.pth",
+        default="models/posenet_model.pth",
         help="저장된 모델 checkpoint 경로"
     )
     parser.add_argument(
